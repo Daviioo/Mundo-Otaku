@@ -15,9 +15,9 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow-x: hidden; }
+        body, html { background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow: hidden; height: 100%; width: 100%; }
 
-        /* TELA INICIAL (IGUAL AO QUE VOCÊ TINHA) */
+        /* LISTA INICIAL */
         #home-screen { width: 100%; height: 100%; overflow-y: auto; display: block; }
         header { padding: 40px 20px 20px; text-align: center; }
         h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -31,34 +31,42 @@
         .tab-btn.active { color: #000; }
         .glider { position: absolute; height: calc(100% - 8px); width: calc(50% - 4px); background: var(--accent); border-radius: 50px; top: 4px; left: 4px; transition: 0.4s; z-index: 1; }
 
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 15px; }
-        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 15px; padding-bottom: 40px; }
+        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
         .card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
         .card-title { padding: 10px; text-align: center; font-size: 0.8rem; font-weight: 700; }
 
-        /* PLAYER */
-        #viewer-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; background: #000; }
-        
+        /* PLAYER DE SITES */
+        #viewer-container { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            z-index: 999999; 
+            background: #000; 
+        }
+
         /* O BOTÃO AZUL (SÓ PARA MANGÁ) */
-        .btn-voltar { 
+        #btn-voltar-manga { 
             position: absolute; 
-            top: 15px; 
-            left: 15px; 
-            z-index: 100000; 
+            top: 20px; left: 20px; 
+            z-index: 1000001; 
             background: var(--accent); 
             color: #000; 
             border: none; 
             padding: 12px 20px; 
             border-radius: 12px; 
             font-weight: 800; 
-            display: none; /* Começa escondido */
-            cursor: pointer;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
-        #iframe-player { width: 100%; height: 100%; border: none; }
+        #viewer-frame { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
+
+<button id="btn-voltar-manga" onclick="fecharSite()">← VOLTAR</button>
 
 <div id="home-screen">
     <header><h1>Mundo Otaku</h1></header>
@@ -75,9 +83,8 @@
     <div class="grid" id="main-grid"></div>
 </div>
 
-<div id="viewer-screen">
-    <button id="botao-manga" class="btn-voltar" onclick="fecharViewer()">← VOLTAR</button>
-    <iframe id="iframe-player" src=""></iframe>
+<div id="viewer-container">
+    <iframe id="viewer-frame" src=""></iframe>
 </div>
 
 <script>
@@ -92,25 +99,47 @@
         executarBusca();
     }
 
-    function abrirViewer(nome) {
+    function abrirSite(nome) {
         const query = encodeURIComponent(nome);
+        // Crunchyroll às vezes bloqueia iframe. Se der tela preta, tentaremos um link de busca mobile.
         const url = (tipoAtual === 'anime') 
             ? `https://www.crunchyroll.com/search?q=${query}`
             : `https://mangadex.org/search?q=${query}`;
         
-        // Mostra o botão apenas se for mangá
-        document.getElementById('botao-manga').style.display = (tipoAtual === 'manga') ? 'block' : 'none';
+        const container = document.getElementById('viewer-container');
+        const frame = document.getElementById('viewer-frame');
+        const btn = document.getElementById('btn-voltar-manga');
+
+        // Mostra o botão azul APENAS se for mangá
+        btn.style.display = (tipoAtual === 'manga') ? 'block' : 'none';
         
-        document.getElementById('iframe-player').src = url;
-        document.getElementById('viewer-screen').style.display = 'block';
+        frame.src = url;
+        container.style.display = 'block';
         document.getElementById('home-screen').style.display = 'none';
+
+        // Para animes, como não tem botão, avisamos o usuário (opcional)
+        if(tipoAtual === 'anime') {
+            console.log("Use o gesto de voltar do celular para sair do anime.");
+        }
     }
 
-    function fecharViewer() {
-        document.getElementById('iframe-player').src = "";
-        document.getElementById('viewer-screen').style.display = 'none';
+    function fecharSite() {
+        document.getElementById('viewer-frame').src = "";
+        document.getElementById('viewer-container').style.display = 'none';
+        document.getElementById('btn-voltar-manga').style.display = 'none';
         document.getElementById('home-screen').style.display = 'block';
     }
+
+    // INTERCEPTAR O BOTÃO VOLTAR DO ANDROID (MOTOROLA)
+    // Isso evita que o app feche!
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function() {
+        const container = document.getElementById('viewer-container');
+        if (container.style.display === 'block') {
+            fecharSite();
+            window.history.pushState(null, null, window.location.href);
+        }
+    };
 
     async function executarBusca() {
         const query = document.getElementById('search').value;
@@ -123,10 +152,10 @@
             const res = await fetch(url);
             const data = await res.json();
             grid.innerHTML = "";
-            data.data.slice(0, 20).forEach(item => {
+            data.data.slice(0, 24).forEach(item => {
                 const card = document.createElement('div');
                 card.className = "card";
-                card.onclick = () => abrirViewer(item.title);
+                card.onclick = () => abrirSite(item.title);
                 card.innerHTML = `<img src="${item.images.jpg.large_image_url}"><div class="card-title">${item.title}</div>`;
                 grid.appendChild(card);
             });
