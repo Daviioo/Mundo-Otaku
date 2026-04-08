@@ -14,93 +14,70 @@
             --sub: #94a3b8;
         }
 
-        /* BARRA DE VOLTAR FIXA */
-        .nav-app {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50px;
-            background: #11141d;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            z-index: 9999;
-            border-bottom: 1px solid var(--accent);
-        }
-
-        .btn-voltar {
-            background: var(--accent);
-            color: #000;
-            border: none;
-            padding: 5px 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow-x: hidden; }
 
-        html, body {
-            margin: 0; padding: 0; width: 100%; 
-            background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text);
-        }
-
-        /* Espaçamento para não ficar atrás da barra */
-        body { padding-top: 60px; }
-
-        header { padding: 30px 20px 20px; text-align: center; }
+        /* TELA DE RECOMENDAÇÕES */
+        #home-screen { display: block; padding-bottom: 50px; }
+        header { padding: 40px 20px 20px; text-align: center; }
         h1 { font-size: 2.2rem; font-weight: 800; margin: 0; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         .search-wrapper { display: flex; justify-content: center; padding: 0 20px; margin: 20px 0; }
-        .search-bar { width: 100%; max-width: 500px; display: flex; gap: 10px; }
-        .search-bar input { flex: 1; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; color: white; text-align: center; outline: none; }
+        .search-bar { width: 100%; max-width: 500px; }
+        .search-bar input { width: 100%; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; color: white; text-align: center; outline: none; }
         
-        .tabs-wrapper { display: flex; justify-content: center; margin-bottom: 20px; position: sticky; top: 50px; z-index: 1000; background: var(--bg); padding: 10px 0; }
+        .tabs-wrapper { display: flex; justify-content: center; margin-bottom: 20px; position: sticky; top: 0; z-index: 100; background: var(--bg); padding: 10px 0; }
         .tabs-nav { background: #161b22; padding: 4px; border-radius: 50px; display: flex; width: 240px; position: relative; }
-        .tab-btn { flex: 1; padding: 10px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--sub); z-index: 2; }
+        .tab-btn { flex: 1; padding: 10px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--sub); z-index: 2; cursor: pointer; }
         .tab-btn.active { color: #000; }
         .glider { position: absolute; height: calc(100% - 8px); width: calc(50% - 4px); background: var(--accent); border-radius: 50px; top: 4px; left: 4px; transition: 0.4s; z-index: 1; }
 
         .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding-bottom: 40px; }
-        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; display: flex; flex-direction: column; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; }
         .img-container { width: 100%; aspect-ratio: 2/3; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
         .card-info { padding: 10px; text-align: center; }
         .card-title { font-size: 0.85rem; font-weight: 700; }
+
+        /* TELA DO PLAYER (CRUNCHYROLL/MANGADEX) */
+        #viewer-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: #000; }
+        .nav-viewer { position: absolute; top: 10px; left: 10px; z-index: 10000; }
+        .btn-voltar { background: var(--accent); color: #000; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        iframe { width: 100%; height: 100%; border: none; padding-top: 0; }
     </style>
 </head>
 <body>
 
-<div class="nav-app">
-    <button class="btn-voltar" onclick="window.location.reload()">🏠 Início</button>
-    <div style="margin-left: 15px; font-weight: bold; font-size: 0.9rem; color: var(--accent);">Mundo Otaku</div>
-</div>
+<div id="home-screen">
+    <header>
+        <h1>Mundo Otaku</h1>
+    </header>
 
-<header>
-    <h1>Mundo Otaku</h1>
-</header>
+    <div class="search-wrapper">
+        <div class="search-bar">
+            <input type="text" id="search" placeholder="Buscar no Mundo Otaku..." oninput="executarBusca()">
+        </div>
+    </div>
 
-<div class="search-wrapper">
-    <div class="search-bar">
-        <input type="text" id="search" placeholder="Buscar anime ou mangá..." oninput="executarBusca()">
+    <div class="tabs-wrapper">
+        <div class="tabs-nav">
+            <div class="tab-btn active" id="btn-anime" onclick="setTipo('anime', this)">Animes</div>
+            <div class="tab-btn" id="btn-manga" onclick="setTipo('manga', this)">Mangás</div>
+            <div class="glider" id="glider"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="main-grid" class="grid"></div>
     </div>
 </div>
 
-<div class="tabs-wrapper">
-    <div class="tabs-nav">
-        <div class="tab-btn active" id="btn-anime" onclick="setTipo('anime', this)">Animes</div>
-        <div class="tab-btn" id="btn-manga" onclick="setTipo('manga', this)">Mangás</div>
-        <div class="glider" id="glider"></div>
+<div id="viewer-screen">
+    <div class="nav-viewer">
+        <button class="btn-voltar" onclick="fecharViewer()">← VOLTAR</button>
     </div>
-</div>
-
-<div class="container">
-    <div id="main-grid" class="grid"></div>
+    <iframe id="iframe-player" src=""></iframe>
 </div>
 
 <script>
@@ -115,6 +92,24 @@
         executarBusca();
     }
 
+    function abrirViewer(nome) {
+        const query = encodeURIComponent(nome);
+        const url = (tipoAtual === 'anime') 
+            ? `https://www.crunchyroll.com/search?q=${query}`
+            : `https://mangadex.org/search?q=${query}`;
+        
+        document.getElementById('iframe-player').src = url;
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('viewer-screen').style.display = 'block';
+        window.scrollTo(0,0);
+    }
+
+    function fecharViewer() {
+        document.getElementById('iframe-player').src = "";
+        document.getElementById('viewer-screen').style.display = 'none';
+        document.getElementById('home-screen').style.display = 'block';
+    }
+
     async function executarBusca() {
         const query = document.getElementById('search').value;
         const grid = document.getElementById('main-grid');
@@ -127,14 +122,11 @@
             const data = await res.json();
             grid.innerHTML = "";
             data.data.slice(0, 20).forEach(item => {
-                const card = document.createElement('a');
-                const searchName = encodeURIComponent(item.title);
-                card.href = (tipoAtual === 'anime') 
-                    ? `https://www.crunchyroll.com/search?q=${searchName}`
-                    : `https://mangadex.org/search?q=${searchName}`;
+                const card = document.createElement('div');
                 card.className = "card";
+                card.onclick = () => abrirViewer(item.title);
                 card.innerHTML = `
-                    <div class="img-container"><img src="${item.images.jpg.large_image_url}"></div>
+                    <div class="img-container"><img src="${item.images.jpg.large_image_url}" loading="lazy"></div>
                     <div class="card-info">
                         <div class="card-title">${item.title}</div>
                     </div>`;
