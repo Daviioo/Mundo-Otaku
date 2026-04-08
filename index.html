@@ -15,10 +15,10 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow-x: hidden; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow: hidden; }
 
-        /* TELA DE RECOMENDAÇÕES */
-        #home-screen { display: block; padding-bottom: 50px; }
+        /* TELA DE RECOMENDAÇÕES (HOME) */
+        #home-screen { width: 100%; height: 100%; overflow-y: auto; display: block; padding-bottom: 50px; }
         header { padding: 40px 20px 20px; text-align: center; }
         h1 { font-size: 2.2rem; font-weight: 800; margin: 0; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
@@ -34,17 +34,42 @@
 
         .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; }
+        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.05); }
         .img-container { width: 100%; aspect-ratio: 2/3; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
         .card-info { padding: 10px; text-align: center; }
         .card-title { font-size: 0.85rem; font-weight: 700; }
 
-        /* TELA DO PLAYER (CRUNCHYROLL/MANGADEX) */
-        #viewer-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: #000; }
-        .nav-viewer { position: absolute; top: 10px; left: 10px; z-index: 10000; }
-        .btn-voltar { background: var(--accent); color: #000; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        iframe { width: 100%; height: 100%; border: none; padding-top: 0; }
+        /* TELA DO PLAYER (SITE EXTERNO) */
+        #viewer-screen { 
+            display: none; /* COMEÇA ESCONDIDO */
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 99999; 
+            background: #000; 
+        }
+        
+        /* BOTÃO DE VOLTAR - SÓ APARECE NESSA TELA */
+        .btn-voltar { 
+            position: absolute; 
+            top: 15px; 
+            left: 15px; 
+            z-index: 100000; 
+            background: var(--accent); 
+            color: #000; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 12px; 
+            font-weight: 800; 
+            font-size: 0.9rem; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            cursor: pointer;
+        }
+
+        #iframe-player { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
@@ -74,10 +99,8 @@
 </div>
 
 <div id="viewer-screen">
-    <div class="nav-viewer">
-        <button class="btn-voltar" onclick="fecharViewer()">← VOLTAR</button>
-    </div>
-    <iframe id="iframe-player" src=""></iframe>
+    <button class="btn-voltar" onclick="fecharViewer()">← VOLTAR</button>
+    <iframe id="iframe-player" src="" allowfullscreen></iframe>
 </div>
 
 <script>
@@ -94,14 +117,13 @@
 
     function abrirViewer(nome) {
         const query = encodeURIComponent(nome);
-        const url = (tipoAtual === 'anime') 
+        let urlFinal = (tipoAtual === 'anime') 
             ? `https://www.crunchyroll.com/search?q=${query}`
             : `https://mangadex.org/search?q=${query}`;
         
-        document.getElementById('iframe-player').src = url;
+        document.getElementById('iframe-player').src = urlFinal;
         document.getElementById('home-screen').style.display = 'none';
         document.getElementById('viewer-screen').style.display = 'block';
-        window.scrollTo(0,0);
     }
 
     function fecharViewer() {
@@ -118,20 +140,23 @@
             const url = query.length > 2 
                 ? `https://api.jikan.moe/v4/${tipoAtual}?q=${query}`
                 : `https://api.jikan.moe/v4/top/${tipoAtual}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            grid.innerHTML = "";
-            data.data.slice(0, 20).forEach(item => {
-                const card = document.createElement('div');
-                card.className = "card";
-                card.onclick = () => abrirViewer(item.title);
-                card.innerHTML = `
-                    <div class="img-container"><img src="${item.images.jpg.large_image_url}" loading="lazy"></div>
-                    <div class="card-info">
-                        <div class="card-title">${item.title}</div>
-                    </div>`;
-                grid.appendChild(card);
-            });
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                grid.innerHTML = "";
+                data.data.slice(0, 20).forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "card";
+                    card.onclick = () => abrirViewer(item.title);
+                    card.innerHTML = `
+                        <div class="img-container"><img src="${item.images.jpg.large_image_url}" loading="lazy"></div>
+                        <div class="card-info">
+                            <div class="card-title">${item.title}</div>
+                        </div>`;
+                    grid.appendChild(card);
+                });
+            } catch (e) { console.log("Erro ao carregar dados."); }
         }, 300);
     }
     window.onload = executarBusca;
