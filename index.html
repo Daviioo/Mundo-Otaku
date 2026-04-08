@@ -11,111 +11,128 @@
             --card-bg: #11141d;
             --accent: #00d2ff;
             --text: #ffffff;
+            --sub: #94a3b8;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow-x: hidden; }
 
-        /* LISTA DE CAPAS */
-        #home-screen { width: 100%; height: 100%; overflow-y: auto; display: block; }
+        /* TELA DE RECOMENDAÇÕES */
+        #home-screen { display: block; padding-bottom: 50px; }
         header { padding: 40px 20px 20px; text-align: center; }
         h1 { font-size: 2.2rem; font-weight: 800; margin: 0; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         .search-wrapper { display: flex; justify-content: center; padding: 0 20px; margin: 20px 0; }
-        .search-bar input { width: 100%; max-width: 500px; background: var(--card-bg); border: 1px solid var(--accent); padding: 15px; border-radius: 12px; color: white; text-align: center; outline: none; }
+        .search-bar { width: 100%; max-width: 500px; }
+        .search-bar input { width: 100%; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; color: white; text-align: center; outline: none; }
         
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 15px 50px; }
+        .tabs-wrapper { display: flex; justify-content: center; margin-bottom: 20px; position: sticky; top: 0; z-index: 100; background: var(--bg); padding: 10px 0; }
+        .tabs-nav { background: #161b22; padding: 4px; border-radius: 50px; display: flex; width: 240px; position: relative; }
+        .tab-btn { flex: 1; padding: 10px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--sub); z-index: 2; cursor: pointer; }
+        .tab-btn.active { color: #000; }
+        .glider { position: absolute; height: calc(100% - 8px); width: calc(50% - 4px); background: var(--accent); border-radius: 50px; top: 4px; left: 4px; transition: 0.4s; z-index: 1; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
-        .card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
-        .card-info { padding: 10px; text-align: center; font-size: 0.85rem; font-weight: 700; }
+        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; }
+        .img-container { width: 100%; aspect-ratio: 2/3; }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        .card-info { padding: 10px; text-align: center; }
+        .card-title { font-size: 0.85rem; font-weight: 700; }
 
-        /* BOTÃO VOLTAR FLUTUANTE (O SEGREDO) */
-        #btn-flutuante-voltar {
-            display: none; /* Só aparece quando abrir o site */
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 9999999; /* Fica acima de TUDO */
-            background: var(--accent);
-            color: #000;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 50px;
-            font-weight: 900;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.8);
-            cursor: pointer;
-        }
-
-        /* O PLAYER/SITE */
-        #viewer-frame {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 999999;
-            background: #000;
-            border: none;
-        }
+        /* TELA DO PLAYER (CRUNCHYROLL/MANGADEX) */
+        #viewer-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: #000; }
+        .nav-viewer { position: absolute; top: 10px; left: 10px; z-index: 10000; }
+        .btn-voltar { background: var(--accent); color: #000; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        iframe { width: 100%; height: 100%; border: none; padding-top: 0; }
     </style>
 </head>
 <body>
 
-<button id="btn-flutuante-voltar" onclick="fecharSite()">← VOLTAR</button>
-
 <div id="home-screen">
-    <header><h1>Mundo Otaku</h1></header>
+    <header>
+        <h1>Mundo Otaku</h1>
+    </header>
+
     <div class="search-wrapper">
-        <input type="text" id="search" placeholder="Buscar Anime ou Mangá..." oninput="executarBusca()">
+        <div class="search-bar">
+            <input type="text" id="search" placeholder="Buscar no Mundo Otaku..." oninput="executarBusca()">
+        </div>
     </div>
-    <div class="container"><div id="main-grid" class="grid"></div></div>
+
+    <div class="tabs-wrapper">
+        <div class="tabs-nav">
+            <div class="tab-btn active" id="btn-anime" onclick="setTipo('anime', this)">Animes</div>
+            <div class="tab-btn" id="btn-manga" onclick="setTipo('manga', this)">Mangás</div>
+            <div class="glider" id="glider"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="main-grid" class="grid"></div>
+    </div>
 </div>
 
-<iframe id="viewer-frame" src=""></iframe>
+<div id="viewer-screen">
+    <div class="nav-viewer">
+        <button class="btn-voltar" onclick="fecharViewer()">← VOLTAR</button>
+    </div>
+    <iframe id="iframe-player" src=""></iframe>
+</div>
 
 <script>
-    function abrirSite(nome) {
-        const query = encodeURIComponent(nome);
-        // Usando o Google Search como intermediário ou o link direto
-        // Muitos sites bloqueiam IFRAME, vamos tentar o DuckDuckGo Search que é mais aberto
-        let urlFinal = `https://www.crunchyroll.com/search?q=${query}`;
-        
-        const frame = document.getElementById('viewer-frame');
-        const btn = document.getElementById('btn-flutuante-voltar');
-        
-        frame.src = urlFinal;
-        frame.style.display = 'block';
-        btn.style.display = 'block';
+    let tipoAtual = 'anime';
+    let timeout;
+
+    function setTipo(tipo, el) {
+        tipoAtual = tipo;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('glider').style.transform = tipo === 'manga' ? 'translateX(100%)' : 'translateX(0)';
+        executarBusca();
     }
 
-    function fecharSite() {
-        const frame = document.getElementById('viewer-frame');
-        const btn = document.getElementById('btn-flutuante-voltar');
+    function abrirViewer(nome) {
+        const query = encodeURIComponent(nome);
+        const url = (tipoAtual === 'anime') 
+            ? `https://www.crunchyroll.com/search?q=${query}`
+            : `https://mangadex.org/search?q=${query}`;
         
-        frame.src = "";
-        frame.style.display = 'none';
-        btn.style.display = 'none';
+        document.getElementById('iframe-player').src = url;
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('viewer-screen').style.display = 'block';
+        window.scrollTo(0,0);
+    }
+
+    function fecharViewer() {
+        document.getElementById('iframe-player').src = "";
+        document.getElementById('viewer-screen').style.display = 'none';
+        document.getElementById('home-screen').style.display = 'block';
     }
 
     async function executarBusca() {
         const query = document.getElementById('search').value;
         const grid = document.getElementById('main-grid');
-        const url = query.length > 2 
-            ? `https://api.jikan.moe/v4/anime?q=${query}`
-            : `https://api.jikan.moe/v4/top/anime`;
-        
-        try {
+        clearTimeout(timeout);
+        timeout = setTimeout(async () => {
+            const url = query.length > 2 
+                ? `https://api.jikan.moe/v4/${tipoAtual}?q=${query}`
+                : `https://api.jikan.moe/v4/top/${tipoAtual}`;
             const res = await fetch(url);
             const data = await res.json();
             grid.innerHTML = "";
             data.data.slice(0, 20).forEach(item => {
                 const card = document.createElement('div');
                 card.className = "card";
-                card.onclick = () => abrirSite(item.title);
-                card.innerHTML = `<img src="${item.images.jpg.large_image_url}"><div class="card-info">${item.title}</div>`;
+                card.onclick = () => abrirViewer(item.title);
+                card.innerHTML = `
+                    <div class="img-container"><img src="${item.images.jpg.large_image_url}" loading="lazy"></div>
+                    <div class="card-info">
+                        <div class="card-title">${item.title}</div>
+                    </div>`;
                 grid.appendChild(card);
             });
-        } catch (e) {}
+        }, 300);
     }
     window.onload = executarBusca;
 </script>
