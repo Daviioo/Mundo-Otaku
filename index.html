@@ -94,10 +94,28 @@
         executarBusca();
     }
 
+    // Função para resetar o app para o estado inicial
+    function reiniciarApp() {
+        tipoAtual = 'anime';
+        document.getElementById('search').value = ''; // Limpa a busca
+        const btnAnime = document.getElementById('btn-anime');
+        const btnManga = document.getElementById('btn-manga');
+        
+        // Reseta visual dos botões
+        btnAnime.classList.add('active');
+        btnManga.classList.remove('active');
+        document.getElementById('glider').style.transform = 'translateX(0)';
+        
+        executarBusca();
+    }
+
     async function executarBusca() {
         const query = document.getElementById('search').value;
         const grid = document.getElementById('main-grid');
         const loading = document.getElementById('loading');
+        
+        loading.style.display = "block"; // Garante que o loading apareça ao buscar
+        
         clearTimeout(timeout);
         timeout = setTimeout(async () => {
             try {
@@ -108,26 +126,33 @@
                 const data = await res.json();
                 loading.style.display = "none";
                 grid.innerHTML = "";
-                data.data.slice(0, 20).forEach(item => {
-                    const card = document.createElement('a');
-                    const searchName = encodeURIComponent(item.title);
-                    card.href = (tipoAtual === 'anime') 
-                        ? `https://www.crunchyroll.com/search?q=${searchName}`
-                        : `https://mangadex.org/search?q=${searchName}`;
-                    card.target = "_self"; // Abre dentro do app
-                    card.className = "card";
-                    card.innerHTML = `
-                        <div class="img-container"><img src="${item.images.jpg.large_image_url}" loading="lazy"></div>
-                        <div class="card-info">
-                            <span class="card-tag">${item.type || tipoAtual}</span>
-                            <div class="card-title">${item.title}</div>
-                        </div>`;
-                    grid.appendChild(card);
-                });
-            } catch (e) { loading.innerText = "Erro ao carregar."; }
+                
+                if (data.data) {
+                    data.data.slice(0, 20).forEach(item => {
+                        const card = document.createElement('a');
+                        const searchName = encodeURIComponent(item.title);
+                        card.href = (tipoAtual === 'anime') 
+                            ? `https://www.crunchyroll.com/search?q=${searchName}`
+                            : `https://mangadex.org/search?q=${searchName}`;
+                        card.target = "_self";
+                        card.className = "card";
+                        card.innerHTML = `
+                            <div class="img-container"><img src="${item.images.jpg.large_image_url}" loading="lazy"></div>
+                            <div class="card-info">
+                                <span class="card-tag">${item.type || tipoAtual}</span>
+                                <div class="card-title">${item.title}</div>
+                            </div>`;
+                        grid.appendChild(card);
+                    });
+                }
+            } catch (e) { 
+                loading.innerText = "Erro ao carregar."; 
+            }
         }, 300);
     }
-    window.onload = executarBusca;
+
+    // Aciona o reset sempre que a página carrega/atualiza
+    window.onload = reiniciarApp;
 </script>
 </body>
 </html>
