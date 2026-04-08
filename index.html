@@ -15,9 +15,8 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body, html { background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow-x: hidden; height: 100%; }
+        body, html { background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow-x: hidden; }
 
-        /* LISTA DE CAPAS */
         #home-screen { width: 100%; height: 100%; overflow-y: auto; display: block; }
         header { padding: 40px 20px 20px; text-align: center; }
         h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -35,10 +34,6 @@
         .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
         .card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
         .card-title { padding: 10px; text-align: center; font-size: 0.8rem; font-weight: 700; }
-
-        /* PLAYER SEM BOTÕES */
-        #viewer-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999; background: #000; }
-        #viewer-frame { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
@@ -56,10 +51,6 @@
     </div>
 
     <div class="grid" id="main-grid"></div>
-</div>
-
-<div id="viewer-container">
-    <iframe id="viewer-frame" src=""></iframe>
 </div>
 
 <script>
@@ -80,26 +71,9 @@
             ? `https://www.crunchyroll.com/search?q=${query}`
             : `https://mangadex.org/search?q=${query}`;
         
-        document.getElementById('viewer-frame').src = url;
-        document.getElementById('viewer-container').style.display = 'block';
-        document.getElementById('home-screen').style.display = 'none';
-
-        // Faz o sistema entender que há uma nova página para o botão "voltar" do Android funcionar
-        window.history.pushState({viewing: true}, "");
+        // NAVEGAÇÃO DIRETA: Resolve a tela preta e o bloqueio
+        window.location.href = url;
     }
-
-    function fecharSite() {
-        document.getElementById('viewer-frame').src = "";
-        document.getElementById('viewer-container').style.display = 'none';
-        document.getElementById('home-screen').style.display = 'block';
-    }
-
-    // INTERCEPTA O VOLTAR DO SEU MOTOROLA
-    window.onpopstate = function(event) {
-        if (document.getElementById('viewer-container').style.display === 'block') {
-            fecharSite();
-        }
-    };
 
     async function executarBusca() {
         const query = document.getElementById('search').value;
