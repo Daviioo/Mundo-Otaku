@@ -15,15 +15,15 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow: hidden; height: 100vh; width: 100vw; }
+        body { background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow-x: hidden; }
 
-        /* TELA INICIAL */
-        #home-screen { width: 100%; height: 100%; overflow-y: auto; display: block; padding-bottom: 30px; }
-        header { padding: 40px 20px; text-align: center; }
+        /* TELA INICIAL (IGUAL AO QUE VOCÊ TINHA) */
+        #home-screen { width: 100%; height: 100%; overflow-y: auto; display: block; }
+        header { padding: 40px 20px 20px; text-align: center; }
         h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         .search-bar { padding: 0 20px; margin-bottom: 20px; text-align: center; }
-        .search-bar input { width: 100%; max-width: 500px; background: var(--card-bg); border: 1px solid var(--accent); padding: 15px; border-radius: 12px; color: white; outline: none; }
+        .search-bar input { width: 100%; max-width: 500px; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; color: white; outline: none; }
         
         .tabs-wrapper { display: flex; justify-content: center; margin-bottom: 20px; }
         .tabs-nav { background: #161b22; padding: 4px; border-radius: 50px; display: flex; width: 240px; position: relative; }
@@ -32,40 +32,37 @@
         .glider { position: absolute; height: calc(100% - 8px); width: calc(50% - 4px); background: var(--accent); border-radius: 50px; top: 4px; left: 4px; transition: 0.4s; z-index: 1; }
 
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 15px; }
-        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; cursor: pointer; }
         .card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
         .card-title { padding: 10px; text-align: center; font-size: 0.8rem; font-weight: 700; }
 
-        /* PLAYER AREA */
-        #viewer-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: #000; }
+        /* PLAYER */
+        #viewer-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; background: #000; }
         
-        /* BARRA SUPERIOR (SÓ APARECE NO MANGÁ AGORA) */
-        #top-nav {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 60px;
-            background: rgba(17, 20, 29, 0.95);
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            z-index: 20000;
-            border-bottom: 1px solid var(--accent);
+        /* O BOTÃO AZUL (SÓ PARA MANGÁ) */
+        .btn-voltar { 
+            position: absolute; 
+            top: 15px; 
+            left: 15px; 
+            z-index: 100000; 
+            background: var(--accent); 
+            color: #000; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 12px; 
+            font-weight: 800; 
+            display: none; /* Começa escondido */
+            cursor: pointer;
         }
 
-        .btn-voltar { background: var(--accent); color: #000; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 900; cursor: pointer; }
-
-        #viewer-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-        
-        /* Ajuste quando a barra está visível */
-        .with-nav #viewer-frame { top: 60px; height: calc(100% - 60px); }
+        #iframe-player { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
 <div id="home-screen">
     <header><h1>Mundo Otaku</h1></header>
-    <div class="search-bar"><input type="text" id="search" placeholder="Buscar no Mundo Otaku..." oninput="executarBusca()"></div>
+    <div class="search-bar"><input type="text" id="search" placeholder="Buscar..." oninput="executarBusca()"></div>
     
     <div class="tabs-wrapper">
         <div class="tabs-nav">
@@ -78,11 +75,9 @@
     <div class="grid" id="main-grid"></div>
 </div>
 
-<div id="viewer-container">
-    <div id="top-nav">
-        <button class="btn-voltar" onclick="fecharViewer()">← VOLTAR</button>
-    </div>
-    <iframe id="viewer-frame" src=""></iframe>
+<div id="viewer-screen">
+    <button id="botao-manga" class="btn-voltar" onclick="fecharViewer()">← VOLTAR</button>
+    <iframe id="iframe-player" src=""></iframe>
 </div>
 
 <script>
@@ -99,28 +94,22 @@
 
     function abrirViewer(nome) {
         const query = encodeURIComponent(nome);
-        const container = document.getElementById('viewer-container');
-        const nav = document.getElementById('top-nav');
-        const frame = document.getElementById('viewer-frame');
+        const url = (tipoAtual === 'anime') 
+            ? `https://www.crunchyroll.com/search?q=${query}`
+            : `https://mangadex.org/search?q=${query}`;
         
-        let url = "";
-        if (tipoAtual === 'anime') {
-            url = `https://www.crunchyroll.com/search?q=${query}`;
-            nav.style.display = 'none'; // REMOVE O BOTÃO NO ANIME
-            container.classList.remove('with-nav');
-        } else {
-            url = `https://mangadex.org/search?q=${query}`;
-            nav.style.display = 'flex'; // MANTÉM O BOTÃO NO MANGÁ
-            container.classList.add('with-nav');
-        }
+        // Mostra o botão apenas se for mangá
+        document.getElementById('botao-manga').style.display = (tipoAtual === 'manga') ? 'block' : 'none';
         
-        frame.src = url;
-        container.style.display = 'block';
+        document.getElementById('iframe-player').src = url;
+        document.getElementById('viewer-screen').style.display = 'block';
+        document.getElementById('home-screen').style.display = 'none';
     }
 
     function fecharViewer() {
-        document.getElementById('viewer-frame').src = "";
-        document.getElementById('viewer-container').style.display = 'none';
+        document.getElementById('iframe-player').src = "";
+        document.getElementById('viewer-screen').style.display = 'none';
+        document.getElementById('home-screen').style.display = 'block';
     }
 
     async function executarBusca() {
